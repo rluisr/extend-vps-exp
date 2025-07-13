@@ -1,0 +1,12 @@
+{
+  "name": "extend-vps-exp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "ssh://git@github.com/rluisr/extend-vps-exp.git",
+  "author": "rluisr <detteiu.x14th@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^24.12.1",
+    "puppeteer-screen-recorder": "^3.0.6"
+  }
+}

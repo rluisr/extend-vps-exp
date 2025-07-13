@@ -1,12 +1,14 @@
 import puppeteer from 'puppeteer'
 import { setTimeout } from 'node:timers/promises'
+import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
 
 const browser = await puppeteer.launch({
     defaultViewport: {width: 1080, height: 1024},
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
 })
 const [page] = await browser.pages()
-const recorder = await page.screencast({ path: 'recording.webm' })
+const recorder = new PuppeteerScreenRecorder(page)
+await recorder.start('recording.mp4')
 
 try {
     await page.goto('https://secure.xserver.ne.jp/xapanel/login/xserver/')
