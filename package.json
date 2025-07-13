@@ -6,6 +6,7 @@
   "author": "rluisr <detteiu.x14th@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
     "puppeteer": "^24.12.1",
     "puppeteer-screen-recorder": "^3.0.6"
   }
