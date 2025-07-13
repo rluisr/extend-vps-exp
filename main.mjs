@@ -3,13 +3,6 @@ import { setTimeout } from 'node:timers/promises'
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
 import TelegramBot from 'node-telegram-bot-api'
 
-const requiredEnv = ['EMAIL', 'PASSWORD', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
-for (const env of requiredEnv) {
-    if (!process.env[env]) {
-        throw new Error(`Missing environment variable: ${env}`)
-    }
-}
-
 const browser = await puppeteer.launch({
     defaultViewport: {width: 1080, height: 1024},
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
