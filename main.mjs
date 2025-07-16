@@ -10,9 +10,17 @@ for (const env of requiredEnv) {
     }
 }
 
+const args = ['--no-sandbox', '--disable-setuid-sandbox']
+if (process.env.PROXY_SERVER) {
+    const proxy_url = new URL(process.env.PROXY_SERVER)
+    proxy_url.username = ''
+    proxy_url.password = ''
+    args.push(`--proxy-server=${proxy_url}`.replace(/\/$/, ''))
+}
+
 const browser = await puppeteer.launch({
-    defaultViewport: {width: 1080, height: 1024},
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    defaultViewport: { width: 1080, height: 1024 },
+    args,
 })
 const [page] = await browser.pages()
 const recorder = new PuppeteerScreenRecorder(page)
@@ -21,23 +29,31 @@ await recorder.start('recording.mp4')
 let error = null
 
 try {
-    await page.goto('https://secure.xserver.ne.jp/xapanel/login/xserver/')
+    if (process.env.PROXY_SERVER) {
+        const { username, password } = new URL(process.env.PROXY_SERVER)
+        if (username && password) {
+            await page.authenticate({ username, password })
+        }
+    }
+
+    await page.goto('https://secure.xserver.ne.jp/xapanel/login/xvps/', { waitUntil: 'networkidle2' })
     await page.locator('#memberid').fill(process.env.EMAIL)
     await page.locator('#user_password').fill(process.env.PASSWORD)
-    await page.click('text=ログインする')
-    await page.waitForNavigation()
-    await page.goto('https://secure.xserver.ne.jp/xapanel/xvps/index')
-    await page.click('.contract__menuIcon')
-    await page.click('text=契約情報')
-    await page.click('text=更新する')
-    await page.click('text=引き続き無料VPSの利用を継続する')
-    await page.waitForNavigation()
-    await page.click('text=無料VPSの利用を継続する')
+    await page.locator('text=ログインする').click()
+    await page.waitForNavigation({ waitUntil: 'networkidle2' })
+    await page.locator('a[href^="/xapanel/xvps/server/detail?id="]').click()
+    await page.locator('text=更新する').click()
+    await page.locator('text=引き続き無料VPSの利用を継続する').click()
+    await page.waitForNavigation({ waitUntil: 'networkidle2' })
+    const body = await page.$eval('img[src^="data:"]', img => img.src)
+    const code = await fetch('https://captcha-120546510085.asia-northeast1.run.app', { method: 'POST', body }).then(r => r.text())
+    await page.locator('[placeholder="上の画像の数字を入力"]').fill(code)
+    await page.locator('text=無料VPSの利用を継続する').click()
 } catch (e) {
     error = e
     console.error(e)
 } finally {
-    await setTimeout(2000)
+    await setTimeout(5000)
     await recorder.stop()
     const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {polling: false})
     await bot.sendVideo(process.env.TELEGRAM_CHAT_ID, 'recording.mp4')
